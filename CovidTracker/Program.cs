@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using System.Net.Http;
 using CovidTracker.Api;
-using ConsoleTables;
 
 namespace CovidTracker
 {
@@ -10,59 +9,48 @@ namespace CovidTracker
     {
         static async Task Main(string[] args)
         {
+
             CovidApi api = new CovidApi(new HttpClient());
 
-            ConsoleKeyInfo choice;
-            do
-            {
-                Console.WriteLine("\n1. Global");
-                Console.WriteLine("2. Countries");
-                Console.Write("Choose an option: ");
-                choice = Console.ReadKey();
-                Console.WriteLine();
-            }
-            while (choice.KeyChar != '1' && choice.KeyChar != '2');
+            Console.Write("Fetching data...\n");
 
-            if(choice.KeyChar == '1')
+            StatsPrinter printer = new StatsPrinter(await api.GetSummary());
+
+            while(true)
             {
-                var data = await api.GetGlobalStats();
-                if(data != null)
+                ConsoleKeyInfo choice;
+                do
                 {
-                    var table = new ConsoleTable("Total Confirmed", "Total Deaths", "Total Recovered");
-                    table.AddRow(data.TotalConfirmed, data.TotalDeaths, data.TotalRecovered);
+                    Console.WriteLine("\n-------- COVID-19 Tracker --------");
+                    Console.WriteLine("\n1. Show Global Stats");
+                    Console.WriteLine("2. Show Countries Stats");
+                    Console.WriteLine("3. Exit\n");
+                    Console.Write("Choose an option: ");
+                    choice = Console.ReadKey();
                     Console.WriteLine();
-                    table.Write(Format.Alternative);
+                }
+                while (choice.KeyChar != '1' && choice.KeyChar != '2' && choice.KeyChar != '3');
 
-                    var table2 = new ConsoleTable("New Confirmed", "New Deaths", "New Recovered");
-                    table2.AddRow(data.NewConfirmed, data.NewDeaths, data.NewRecovered);
-                    Console.WriteLine();
-                    table2.Write(Format.Alternative);
-                }
-                else
+                switch (choice.KeyChar)
                 {
-                    Console.WriteLine("Data not available");
-                }
-            }
-            else if(choice.KeyChar == '2')
-            {
-                var data = await api.GetCountriesStats();
+                    case '1':
+                        printer.PrintGlobalStats();
+                        break;
 
-                if (data != null)
-                {
-                    var table = new ConsoleTable("Country", "Total Confirmed", "Total Deaths", "Total Recovered");
-         
-                    foreach(var country in data)
-                    {
-                        table.AddRow(country.Name, country.TotalConfirmed, country.TotalDeaths, country.TotalRecovered);
-                        Console.WriteLine();
-                    }
-                    table.Write(Format.Alternative);
-                }
-                else
-                {
-                    Console.WriteLine("Data not available");
+                    case '2':
+                        printer.PrintCountriesStats();
+                        break;
+
+                    case '3':
+                        Environment.Exit(0);
+                        break;
+
+                    default:
+                        break;
                 }
             }
         }
+
+
     }
 }

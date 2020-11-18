@@ -1,8 +1,10 @@
 ﻿using static System.Console;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using CovidTracker.Models;
+//using System.Text.Json;
 
 namespace CovidTracker.Api
 {
@@ -16,19 +18,19 @@ namespace CovidTracker.Api
             this._client = client;
         }
 
-        public async Task<CovidData> GetSummary()
+        public async Task<DataSummary> GetSummary()
         {
             try
             {
-                var streamTask = _client.GetStreamAsync(uri);
-                CovidData data = await JsonSerializer.DeserializeAsync<CovidData>(await streamTask);
+                //var streamTask = _client.GetStreamAsync(uri);
+                //Summary summary = await JsonSerializer.DeserializeAsync<Summary>(await streamTask);
+                DataSummary summary = await _client.GetFromJsonAsync<DataSummary>(uri);
 
-                return data;
+                return summary;
             }
             catch(HttpRequestException e)
             {
-                WriteLine("\nException Caught!");
-                WriteLine("Error message: {0}", e.Message);
+                WriteLine("Error: {0}", e.Message);
             }
 
             return null;
@@ -36,16 +38,16 @@ namespace CovidTracker.Api
 
         public async Task<GlobalStats> GetGlobalStats()
         {
-            CovidData data = await GetSummary();
+            DataSummary summary = await GetSummary();
 
-            return data.Global;
+            return summary.Global;
         }
 
-        public async Task<List<Country>> GetCountriesStats()
+        public async Task<List<CountryStats>> GetCountriesStats()
         {
-            CovidData data = await GetSummary();
+            DataSummary summary = await GetSummary();
 
-            return data.Countries;
+            return summary.Countries;
         }
     }
 }
